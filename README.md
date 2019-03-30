@@ -7,10 +7,33 @@ A Seq2Seq chat-bot baseline implemented by Tensorflow.
 
 ## Usage:
 
+First clone this repository to your computer:
+
+```
+git clone https://github.com/applenob/tf_chat_seq2seq.git
+cd tf_chat_seq2seq
+```
+
+### Prepare the Dataset
+
+Download dialogue data from [Dialog_Corpus](https://github.com/candlewill/Dialog_Corpus).
+
+```
+git clone https://github.com/candlewill/Dialog_Corpus.git input
+```
+
+Then `unzip` the data.
+
+Make sure we can visit data by path like `input/xiaohuangji50w_nofenci.conv`.
+
+### Train the Model
+
+First you can change the configure in file `config.yml`.
+
 Generate vectorized data:
 
 ```
-python data_process.py
+python data_process.py --conv_path input/xiaohuangji50w_nofenci.conv
 ``` 
 
 Train Tensorflow version seq2seq model:
