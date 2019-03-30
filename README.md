@@ -14,7 +14,7 @@ git clone https://github.com/applenob/tf_chat_seq2seq.git
 cd tf_chat_seq2seq
 ```
 
-### Prepare data
+### Prepare the Dataset
 
 Download dialogue data from [Dialog_Corpus](https://github.com/candlewill/Dialog_Corpus).
 
@@ -26,7 +26,7 @@ Then `unzip` the data.
 
 Make sure we can visit data by path like `input/xiaohuangji50w_nofenci.conv`.
 
-### Model training
+### Train the Model
 
 First you can change the configure in file `config.yml`.
 
