@@ -23,10 +23,19 @@ class Encoder(tf.keras.layers.Layer):
                                        return_state=True,
                                        recurrent_initializer='glorot_uniform')
 
-    def call(self, x, hidden):
+    def call(self, inputs):
+        x, hidden = inputs
         x = self.embedding(x)
         output, state = self.gru(x, initial_state=hidden)
         return output, state
+
+    def build(self, input_sahpe):
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        print(f"{self.name}: {input_shape}")
+        return [tf.TensorShape([self.batch_sz, self.enc_units]),
+                tf.TensorShape([self.batch_sz, self.enc_units])]
 
     def initialize_hidden_state(self):
         return tf.zeros((self.batch_sz, self.enc_units))
@@ -39,7 +48,18 @@ class BahdanauAttention(tf.keras.layers.Layer):
         self.W2 = tf.keras.layers.Dense(units)
         self.V = tf.keras.layers.Dense(1)
 
-    def call(self, query, values):
+    def build(self, input_sahpe):
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        print(f"{self.name}: {input_shape}")
+        batch_sz = input_shape[0][0]
+        hidden_size = input_shape[0][1]
+        return [tf.TensorShape([batch_sz, hidden_size]),
+                tf.TensorShape([batch_sz, hidden_size])]
+
+    def call(self, inputs):
+        query, values = inputs
         # hidden shape == (batch_size, hidden size)
         # hidden_with_time_axis shape == (batch_size, 1, hidden size)
         # we are doing this to perform addition to calculate the score
@@ -64,6 +84,7 @@ class Decoder(tf.keras.layers.Layer):
     def __init__(self, vocab_size, embedding_dim, dec_units, batch_sz):
         super(Decoder, self).__init__()
         self.batch_sz = batch_sz
+        self.vocab_size = vocab_size
         self.dec_units = dec_units
         self.embedding = tf.keras.layers.Embedding(vocab_size, embedding_dim)
         self.gru = tf.keras.layers.GRU(self.dec_units,
@@ -75,9 +96,21 @@ class Decoder(tf.keras.layers.Layer):
         # used for attention
         self.attention = BahdanauAttention(self.dec_units)
 
-    def call(self, x, hidden, enc_output):
+    def build(self, input_sahpe):
+        self.built = True
+
+    def compute_output_shape(self, input_shape):
+        print(f"{self.name}: {input_shape}")
+        batch_sz = input_shape[0][0]
+        hidden_size = input_shape[1][1]
+        return [tf.TensorShape([batch_sz, self.vocab_size]),
+                tf.TensorShape([batch_sz, hidden_size]),
+                tf.TensorShape([batch_sz, hidden_size])]
+
+    def call(self, inputs):
+        x, hidden, enc_output = inputs
         # enc_output shape == (batch_size, max_length, hidden_size)
-        context_vector, attention_weights = self.attention(hidden, enc_output)
+        context_vector, attention_weights = self.attention([hidden, enc_output])
 
         # x shape after passing through embedding == (batch_size, 1, embedding_dim)
         x = self.embedding(x)
@@ -129,3 +162,7 @@ class ChatModel:
         sample_decoder_output, _, _ = self.decoder(tf.random.uniform((64, 1)),
                                                    sample_hidden, sample_output)
         print('Decoder output shape: (batch_size, vocab size) {}'.format(sample_decoder_output.shape))
+
+
+if __name__ == '__main__':
+    ChatModel()

@@ -5,7 +5,7 @@ model:
   embedding_dim: 200
   resume_train: false
   model_path: "saved_model"
-  saved_epoch: 0
+  saved_epoch: 3
   max_epoch_num: 10
   beam_width: 10
   learning_rate: 0.0003

@@ -24,7 +24,7 @@ def load_model(mode, output_dir, use_word):
     model = ChatModel(vocab_size, config)
     epoch = config["model"]["saved_epoch"]
     if mode != "train" or config["model"]["resume_train"]:
-        model.load(sess, config["model"]["model_path"], f"epoch: {epoch}")
+        model.load(sess, config["model"]["model_path"], f"epoch-{epoch}")
         print('Successfully load model!')
     else:
         sess.run(tf.global_variables_initializer())

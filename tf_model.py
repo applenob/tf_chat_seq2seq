@@ -18,7 +18,6 @@ class ChatModel:
         self.beam_width = config["model"]["beam_width"]
         self.learning_rate = config["model"]["learning_rate"]
         self.max_decode_step = config["data"]["max_decode_step"]
-        self.batch_size = config["data"]["batch_size"]
         self.use_pretrain_embed = config["model"]["use_pretrain_embed"]
         self.vocab_size = vocab_size
 
@@ -34,6 +33,7 @@ class ChatModel:
                                               name='decode_targets')
         self.decoder_actual_length = tf.placeholder(tf.int32, [None],
                                                     name='decoder_actual_length')
+        self.batch_size = tf.shape(self.encoder_inputs)[0]
 
         with tf.name_scope("embedding"):
             if self.use_pretrain_embed:
@@ -84,7 +84,7 @@ class ChatModel:
             training_decoder = tf.contrib.seq2seq.BasicDecoder(
                 cell=self.decoder_cell,
                 helper=training_helper,
-                initial_state=self.decoder_cell.zero_state(tf.shape(self.encoder_inputs)[0],
+                initial_state=self.decoder_cell.zero_state(self.batch_size,
                                                            tf.float32).clone(cell_state=encoder_final_state),
                 output_layer=projection_layer)
             training_decoder_output, _, _ = tf.contrib.seq2seq.dynamic_decode(
