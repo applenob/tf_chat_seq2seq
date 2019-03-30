@@ -21,7 +21,8 @@ GO_ID = 1
 EOS_ID = 2
 UNK_ID = 3
 user_dict_file = "input/user_dict.txt"
-jieba.load_userdict(user_dict_file)
+if os.path.exists(user_dict_file):
+    jieba.load_userdict(user_dict_file)
 
 
 def split_dataset(conv_path):
