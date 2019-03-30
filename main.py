@@ -22,8 +22,9 @@ def load_model(mode, output_dir, use_word):
     print(f"vocab_file: {vocab_file}, vocab_size: {vocab_size}")
     sess = get_session()
     model = ChatModel(vocab_size, config)
+    epoch = config["model"]["saved_epoch"]
     if mode != "train" or config["model"]["resume_train"]:
-        model.load(sess, config["model"]["model_path"])
+        model.load(sess, config["model"]["model_path"], f"epoch: {epoch}")
         print('Successfully load model!')
     else:
         sess.run(tf.global_variables_initializer())
@@ -38,7 +39,7 @@ def train(output_dir, use_word=False):
     train_data = load_data(output_dir, config, use_word=use_word)
     batch_size = config["data"]["batch_size"]
     batch_num = int(len(train_data[0])/batch_size)
-    print(f"Start training ! total training data: {len(train_data[0])}, "
+    print(f"Start training! total training data: {len(train_data[0])}, "
           f"total batch num: {batch_num} in one epoch.")
     max_epoch_num = config["model"]["max_epoch_num"]
     for epoch in range(max_epoch_num):
@@ -50,8 +51,9 @@ def train(output_dir, use_word=False):
         train_batch_iter = get_batch(batch_size, train_data)
         for i, train_batch in enumerate(train_batch_iter):
             _, loss, perplexity, predicting_ids = model.step(sess, "train", train_batch)
-            if i % 400 == 0:
-                print(f"[{i} of {batch_num}], loss: {loss:.3f}, time cost: {time.time()- s1:.2f}s")
+            if i % 100 == 0:
+                print(f"Epoch[{epoch}]: [{i} of {batch_num}], loss: {loss:.3f}, "
+                      f"perplexity: {perplexity:.2f}, time cost: {time.time()- s1:.2f}s")
                 sys.stdout.flush()
                 s1 = time.time()
             train_loss.append(loss)
@@ -71,7 +73,7 @@ def train(output_dir, use_word=False):
             best_train_loss = mean_loss
             model_path = config["model"]["model_path"]
             print(f"Save new checkpoint  to: {model_path}")
-            model.save(sess, model_path)
+            model.save(sess, model_path, f"epoch-{epoch}")
     sess.close()
     print("Model training done ! ")
 

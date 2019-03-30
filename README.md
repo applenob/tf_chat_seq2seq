@@ -7,11 +7,12 @@ A Seq2Seq chat-bot baseline implemented by Tensorflow.
 
 ## Usage:
 
-First clone this repository to your computer:
+First clone this repository to your computer and install dependencies:
 
 ```
 git clone https://github.com/applenob/tf_chat_seq2seq.git
 cd tf_chat_seq2seq
+pip install -r requirements.txt
 ```
 
 ### Prepare the Dataset

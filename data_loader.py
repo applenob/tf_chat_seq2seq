@@ -46,7 +46,7 @@ def load_data(output_dir, config, data_type="train", use_word=False):
         word_str = "word"
     else:
         word_str = "char"
-    max_len = config["data"]["max_input_step"]
+    input_len = config["data"]["input_step"]
     encode_vec_name = f"{data_type}_encode.{word_str}.vec"
     decode_vec_name = f"{data_type}_decode.{word_str}.vec"
     encode_input_vec_path = os.path.join(output_dir, encode_vec_name)
@@ -65,24 +65,24 @@ def load_data(output_dir, config, data_type="train", use_word=False):
     decoder_len = [len(one) + 1 for one in decoder_inputs]
     # print("max len of encoder:", max(encoder_len))
     # print("max len of decoder:", max(decoder_len))
-    encoder_len = [one if one <=max_len else max_len for one in encoder_len]
-    decoder_len = [one if one <=max_len else max_len for one in decoder_len]
+    encoder_len = [one if one <=input_len else input_len for one in encoder_len]
+    decoder_len = [one if one <=input_len else input_len for one in decoder_len]
     encoder_inputs_a = []
     decoder_inputs_a = []
     decoder_targets_a = []
     for one in encoder_inputs:
-        if len(one) >= max_len:
-            encoder_one = one[:max_len]
+        if len(one) >= input_len:
+            encoder_one = one[:input_len]
         else:
-            encoder_one = one + [PAD_ID] * (max_len - len(one))
+            encoder_one = one + [PAD_ID] * (input_len - len(one))
         encoder_inputs_a.append(encoder_one)
     for one in decoder_inputs:
-        if len(one) >= max_len-1:
-            dec_inp_one = [GO_ID] + one[:max_len-1]
-            dec_tar_one = one[:max_len-1] + [EOS_ID]
+        if len(one) >= input_len-1:
+            dec_inp_one = [GO_ID] + one[:input_len-1]
+            dec_tar_one = one[:input_len-1] + [EOS_ID]
         else:
-            dec_inp_one = [GO_ID] + one + [PAD_ID] * (max_len - 1 - len(one))
-            dec_tar_one = one + [EOS_ID] + [PAD_ID] * (max_len - 1 - len(one))
+            dec_inp_one = [GO_ID] + one + [PAD_ID] * (input_len - 1 - len(one))
+            dec_tar_one = one + [EOS_ID] + [PAD_ID] * (input_len - 1 - len(one))
         decoder_inputs_a.append(dec_inp_one)
         decoder_targets_a.append(dec_tar_one)
     encoder_len = np.asarray(encoder_len)

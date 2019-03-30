@@ -17,7 +17,7 @@ class ChatModel:
         self.embedding_dim = config["model"]["embedding_dim"]
         self.beam_width = config["model"]["beam_width"]
         self.learning_rate = config["model"]["learning_rate"]
-        self.max_input_step = config["data"]["max_input_step"]
+        self.max_decode_step = config["data"]["max_decode_step"]
         self.batch_size = config["data"]["batch_size"]
         self.use_pretrain_embed = config["model"]["use_pretrain_embed"]
         self.vocab_size = vocab_size
@@ -90,7 +90,7 @@ class ChatModel:
             training_decoder_output, _, _ = tf.contrib.seq2seq.dynamic_decode(
                 decoder=training_decoder,
                 impute_finished=True,
-                maximum_iterations=self.max_input_step,
+                maximum_iterations=self.max_decode_step,
                 output_time_major=True)
             self.training_decoder_output = training_decoder_output
 
@@ -122,7 +122,7 @@ class ChatModel:
             predicting_decoder_output, _, _ = tf.contrib.seq2seq.dynamic_decode(
                 decoder=predicting_decoder,
                 impute_finished=False,
-                maximum_iterations=self.max_input_step,
+                maximum_iterations=self.max_decode_step,
                 output_time_major=True)
             predicting_ids = predicting_decoder_output.predicted_ids[:, :, 0]
             self.predicting_ids = tf.identity(predicting_ids, name="output_ids")

@@ -5,11 +5,13 @@ model:
   embedding_dim: 200
   resume_train: false
   model_path: "saved_model"
-  max_epoch_num: 5
+  saved_epoch: 0
+  max_epoch_num: 10
   beam_width: 10
   learning_rate: 0.0003
 data:
   vocab_max_size: 10000
   vocab_min_freq: 10
-  max_input_step: 30
+  input_step: 30
+  max_decode_step: 30
   batch_size: 64
