@@ -3,7 +3,7 @@
 import tensorflow as tf
 import os
 import numpy as np
-from tf_model import ChatModel
+from model_tf import ChatModel
 from data_loader import *
 from utils import load_yaml_config, get_session
 from metrics import compute_bleu
@@ -24,6 +24,7 @@ def load_model(mode, output_dir, use_word):
     model = ChatModel(vocab_size, config)
     epoch = config["model"]["saved_epoch"]
     if mode != "train" or config["model"]["resume_train"]:
+        sess.run(tf.global_variables_initializer())
         model.load(sess, config["model"]["model_path"], f"epoch-{epoch}")
         print('Successfully load model!')
     else:

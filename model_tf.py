@@ -3,7 +3,7 @@
 import os
 import numpy as np
 import tensorflow as tf
-from tensorflow.contrib.rnn import LSTMCell
+from tensorflow.contrib.rnn import LSTMCell, GRUCell
 import sys
 from tensorflow.contrib import layers
 PAD_SYMBOL = 0
@@ -54,7 +54,7 @@ class ChatModel:
                                                             self.decoder_inputs_tm)
         self.decoder_targets_tm = tf.transpose(self.decoder_targets, perm=[1, 0])
 
-        encoder_cell = LSTMCell(self.hidden_dim)
+        encoder_cell = GRUCell(self.hidden_dim)
         # 下面变量的尺寸：T*B*D，B*D
         encoder_outputs, encoder_final_state = \
             tf.nn.dynamic_rnn(cell=encoder_cell,
@@ -64,7 +64,7 @@ class ChatModel:
         print("encoder_outputs: ", encoder_outputs)
 
         with tf.variable_scope("Decoder"):
-            cell = tf.contrib.rnn.LSTMCell(num_units=self.hidden_dim)
+            cell = tf.contrib.rnn.GRUCell(num_units=self.hidden_dim)
             projection_layer = tf.layers.Dense(vocab_size, name="projection")
             # decoder for training
             memory = tf.transpose(encoder_outputs, [1, 0, 2])
@@ -135,7 +135,7 @@ class ChatModel:
             training_decoder_output.rnn_output, self.decoder_targets_tm_cut, weights=self.mask)
         self.train_perplexity = tf.exp(self.loss)
 
-        self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=2)
+        self.saver = tf.train.Saver(tf.global_variables(), max_to_keep=10)
         global_step = tf.Variable(0, trainable=False)
         optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
         gradients, v = zip(*optimizer.compute_gradients(self.loss))
@@ -175,7 +175,7 @@ class ChatModel:
         self.saver.save(session, os.path.join(checkpoint_path, checkpoint_name))
 
     def load(self, session, checkpoint_path, checkpoint_name="best"):
-        print('[*] Loading checkpoints from {}...'.format(checkpoint_path))
+        print('[*] Loading checkpoints from {}/{}...'.format(checkpoint_path, checkpoint_name))
         try:
             self.saver.restore(session, os.path.join(checkpoint_path, checkpoint_name))
         except Exception as e:

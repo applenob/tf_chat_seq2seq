@@ -8,8 +8,8 @@ import argparse
 from utils import *
 vocab_size = 3794
 word_str = "char"
-model_path = "saved_model"
 config = load_yaml_config("../config.yml")
+model_path = config["model"]["saved_model"]
 
 
 def load_new_model(sess):

@@ -27,9 +27,7 @@ Then `unzip` the data.
 
 Make sure we can visit data by path like `input/xiaohuangji50w_nofenci.conv`.
 
-### Train the Model
-
-First you can change the configure in file `config.yml`.
+Then, you can change the configure in file `config.yml`.
 
 Generate vectorized data:
 
@@ -37,14 +35,30 @@ Generate vectorized data:
 python data_process.py --conv_path input/xiaohuangji50w_nofenci.conv
 ``` 
 
+### Try Tensorflow version
+
 Train Tensorflow version seq2seq model:
 
 ```
-python main.py --mode train
+python main_tf.py --mode train
 ```
 
 Have fun with the model you trained:
 
 ```
-python main.py --mode predict
+python main_tf.py --mode predict
+```
+
+### Try Keras version
+
+Train Keras version seq2seq model:
+
+```
+python main_keras.py --mode train
+```
+
+Have fun with the model you trained:
+
+```
+python main_keras.py --mode predict
 ```

@@ -42,6 +42,7 @@ def load_graph_session_from_ckpt(ckpt_file):
 
 def load_graph_session_from_pb(pb_file, print_op=False):
     """load graph and session from protocol buffer file"""
+    print(f"Loading pb file from: {pb_file}")
     graph = load_frozen_graph(pb_file)
     if print_op:
         for op in graph.get_operations():

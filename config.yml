@@ -4,9 +4,10 @@ model:
   use_pretrain_embed: false
   embedding_dim: 200
   resume_train: false
-  model_path: "saved_model"
-  saved_epoch: 3
-  max_epoch_num: 10
+  model_path: "ckpt"
+  saved_epoch: 22
+  pb_path: "pb"
+  max_epoch_num: 30
   beam_width: 10
   learning_rate: 0.0003
 data:

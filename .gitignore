@@ -109,4 +109,6 @@ venv.bak/
 input
 output
 log.*
-saved_model
+saved_model*
+ckpt*
+pb*

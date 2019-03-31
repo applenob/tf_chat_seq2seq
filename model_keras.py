@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow.contrib.rnn import LSTMCell
 import sys
 from tensorflow.contrib import layers
+from utils import load_yaml_config
 
 PAD_SYMBOL = 0
 GO_SYMBOL = 1
@@ -24,16 +25,18 @@ class Encoder(tf.keras.layers.Layer):
                                        recurrent_initializer='glorot_uniform')
 
     def call(self, inputs):
+        print(f"{self.name} inputs: {inputs}")
         x, hidden = inputs
         x = self.embedding(x)
         output, state = self.gru(x, initial_state=hidden)
         return output, state
 
     def build(self, input_sahpe):
+        super(Encoder, self).build(input_sahpe)
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        print(f"{self.name}: {input_shape}")
+        print(f"{self.name} input_shape: {input_shape}")
         return [tf.TensorShape([self.batch_sz, self.enc_units]),
                 tf.TensorShape([self.batch_sz, self.enc_units])]
 
@@ -49,16 +52,18 @@ class BahdanauAttention(tf.keras.layers.Layer):
         self.V = tf.keras.layers.Dense(1)
 
     def build(self, input_sahpe):
+        super(BahdanauAttention, self).build(input_sahpe)
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        print(f"{self.name}: {input_shape}")
+        print(f"{self.name} input_shape: {input_shape}")
         batch_sz = input_shape[0][0]
         hidden_size = input_shape[0][1]
         return [tf.TensorShape([batch_sz, hidden_size]),
                 tf.TensorShape([batch_sz, hidden_size])]
 
     def call(self, inputs):
+        print(f"{self.name} inputs: {inputs}")
         query, values = inputs
         # hidden shape == (batch_size, hidden size)
         # hidden_with_time_axis shape == (batch_size, 1, hidden size)
@@ -97,10 +102,11 @@ class Decoder(tf.keras.layers.Layer):
         self.attention = BahdanauAttention(self.dec_units)
 
     def build(self, input_sahpe):
+        super(Decoder, self).build(input_sahpe)
         self.built = True
 
     def compute_output_shape(self, input_shape):
-        print(f"{self.name}: {input_shape}")
+        print(f"{self.name} input_shape: {input_shape}")
         batch_sz = input_shape[0][0]
         hidden_size = input_shape[1][1]
         return [tf.TensorShape([batch_sz, self.vocab_size]),
@@ -108,6 +114,7 @@ class Decoder(tf.keras.layers.Layer):
                 tf.TensorShape([batch_sz, hidden_size])]
 
     def call(self, inputs):
+        print(f"{self.name} inputs: {inputs}")
         x, hidden, enc_output = inputs
         # enc_output shape == (batch_size, max_length, hidden_size)
         context_vector, attention_weights = self.attention([hidden, enc_output])
@@ -130,8 +137,9 @@ class Decoder(tf.keras.layers.Layer):
         return x, state, attention_weights
 
 
-class ChatModel:
-    def __init__(self, vocab_size, config, embedding_matrix=None):
+class ChatModel(tf.keras.Model):
+    def __init__(self, vocab_size, config, embedding_matrix=None, **kwargs):
+        super(ChatModel, self).__init__(kwargs)
         self.hidden_dim = config["model"]["hidden_dim"]
         self.embedding_dim = config["model"]["embedding_dim"]
         self.beam_width = config["model"]["beam_width"]
@@ -149,20 +157,28 @@ class ChatModel:
 
     def call(self, x, mask=None):
         # sample input
+        print(f"{self.name} inputs: {x}")
         sample_hidden = self.encoder.initialize_hidden_state()
-        sample_output, sample_hidden = self.encoder(example_input_batch, sample_hidden)
+        sample_output, sample_hidden = self.encoder([x, sample_hidden])
         print('Encoder output shape: (batch size, sequence length, units) {}'.format(sample_output.shape))
         print('Encoder Hidden state shape: (batch size, units) {}'.format(sample_hidden.shape))
 
-        attention_result, attention_weights = self.attention_layer(sample_hidden, sample_output)
+        attention_result, attention_weights = self.attention_layer([sample_hidden, sample_output])
 
         print("Attention result shape: (batch size, units) {}".format(attention_result.shape))
         print("Attention weights shape: (batch_size, sequence_length, 1) {}".format(attention_weights.shape))
 
-        sample_decoder_output, _, _ = self.decoder(tf.random.uniform((64, 1)),
-                                                   sample_hidden, sample_output)
+        sample_decoder_output, _, _ = self.decoder([tf.random.uniform((64, 1)),
+                                                   sample_hidden, sample_output])
         print('Decoder output shape: (batch_size, vocab size) {}'.format(sample_decoder_output.shape))
+        return sample_decoder_output
 
 
 if __name__ == '__main__':
-    ChatModel()
+    vocab_size = 3794
+    config = load_yaml_config("config.yml")
+    model = ChatModel(vocab_size, config)
+    mock_input = np.random.randint(0, 3794, [64, 30])
+    print("mock_input: ", mock_input)
+    model(tf.convert_to_tensor(mock_input))
+    print(model.summary())
