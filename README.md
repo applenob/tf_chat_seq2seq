@@ -49,16 +49,11 @@ Have fun with the model you trained:
 python main_tf.py --mode predict
 ```
 
-### Try Keras version
+## For Producing
 
-Train Keras version seq2seq model:
-
-```
-python main_keras.py --mode train
-```
-
-Have fun with the model you trained:
+Freezing model from checkpoint to proto-buffer file:
 
 ```
-python main_keras.py --mode predict
+cd tools
+python freeze_graph.py --ckpt ../ckpt --pb ../pb
 ```

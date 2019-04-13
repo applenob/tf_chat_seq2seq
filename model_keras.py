@@ -24,7 +24,7 @@ class Encoder(tf.keras.layers.Layer):
                                        return_state=True,
                                        recurrent_initializer='glorot_uniform')
 
-    def call(self, inputs):
+    def call(self, inputs, training=None, mask=None):
         print(f"{self.name} inputs: {inputs}")
         x, hidden = inputs
         x = self.embedding(x)
@@ -62,7 +62,7 @@ class BahdanauAttention(tf.keras.layers.Layer):
         return [tf.TensorShape([batch_sz, hidden_size]),
                 tf.TensorShape([batch_sz, hidden_size])]
 
-    def call(self, inputs):
+    def call(self, inputs, training=None, mask=None):
         print(f"{self.name} inputs: {inputs}")
         query, values = inputs
         # hidden shape == (batch_size, hidden size)
@@ -113,28 +113,28 @@ class Decoder(tf.keras.layers.Layer):
                 tf.TensorShape([batch_sz, hidden_size]),
                 tf.TensorShape([batch_sz, hidden_size])]
 
-    def call(self, inputs):
+    def call(self, inputs, training=None, mask=None):
         print(f"{self.name} inputs: {inputs}")
-        x, hidden, enc_output = inputs
+        dec_input, hidden, enc_output = inputs
         # enc_output shape == (batch_size, max_length, hidden_size)
         context_vector, attention_weights = self.attention([hidden, enc_output])
 
-        # x shape after passing through embedding == (batch_size, 1, embedding_dim)
-        x = self.embedding(x)
+        # dec_input shape after passing through embedding == (batch_size, 1, embedding_dim)
+        dec_input = self.embedding(dec_input)
 
-        # x shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
-        x = tf.concat([tf.expand_dims(context_vector, 1), x], axis=-1)
+        # dec_input shape after concatenation == (batch_size, 1, embedding_dim + hidden_size)
+        dec_input = tf.concat([tf.expand_dims(context_vector, 1), dec_input], axis=-1)
 
         # passing the concatenated vector to the GRU
-        output, state = self.gru(x)
+        output, state = self.gru(dec_input)
 
         # output shape == (batch_size * 1, hidden_size)
         output = tf.reshape(output, (-1, output.shape[2]))
 
         # output shape == (batch_size, vocab)
-        x = self.fc(output)
+        dec_output = self.fc(output)
 
-        return x, state, attention_weights
+        return dec_output, state, attention_weights
 
 
 class ChatModel(tf.keras.Model):
@@ -155,23 +155,23 @@ class ChatModel(tf.keras.Model):
         self.decoder = Decoder(self.vocab_size, self.embedding_dim,
                                self.hidden_dim, self.batch_size)
 
-    def call(self, x, mask=None):
+    def call(self, inputs, training=None, mask=None):
         # sample input
-        print(f"{self.name} inputs: {x}")
-        sample_hidden = self.encoder.initialize_hidden_state()
-        sample_output, sample_hidden = self.encoder([x, sample_hidden])
-        print('Encoder output shape: (batch size, sequence length, units) {}'.format(sample_output.shape))
-        print('Encoder Hidden state shape: (batch size, units) {}'.format(sample_hidden.shape))
+        print(f"{self.name} inputs: {inputs}")
+        encoder_hidden = self.encoder.initialize_hidden_state()
+        encoder_output, encoder_hidden = self.encoder([inputs, encoder_hidden])
+        print('Encoder output shape: (batch size, sequence length, units) {}'.format(encoder_output.shape))
+        print('Encoder Hidden state shape: (batch size, units) {}'.format(encoder_hidden.shape))
 
-        attention_result, attention_weights = self.attention_layer([sample_hidden, sample_output])
+        attention_result, attention_weights = self.attention_layer([encoder_hidden, encoder_output])
 
         print("Attention result shape: (batch size, units) {}".format(attention_result.shape))
         print("Attention weights shape: (batch_size, sequence_length, 1) {}".format(attention_weights.shape))
 
-        sample_decoder_output, _, _ = self.decoder([tf.random.uniform((64, 1)),
-                                                   sample_hidden, sample_output])
-        print('Decoder output shape: (batch_size, vocab size) {}'.format(sample_decoder_output.shape))
-        return sample_decoder_output
+        decoder_output, _, _ = self.decoder([tf.random.uniform((64, 1)),
+                                             encoder_hidden, encoder_output])
+        print('Decoder output shape: (batch_size, vocab size) {}'.format(decoder_output.shape))
+        return decoder_output
 
 
 if __name__ == '__main__':

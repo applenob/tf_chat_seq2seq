@@ -112,3 +112,4 @@ log.*
 saved_model*
 ckpt*
 pb*
+*_keras.py
