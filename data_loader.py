@@ -116,8 +116,6 @@ def one_question_to_input(question, word2id, use_word=True):
     encoder_len = len(encoder_input)
     encoder_input = np.asarray([encoder_input])
     encoder_len = np.asarray([encoder_len])
-    print(encoder_input)
-    print(encoder_len)
     return encoder_input, encoder_len
 
 

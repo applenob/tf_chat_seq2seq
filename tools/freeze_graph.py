@@ -3,7 +3,8 @@
 Freeze a model from ckpt to pb format.
 """
 import sys
-sys.path.append("..")
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import os, argparse
 import tensorflow as tf
 from tensorflow.python.framework import graph_util
@@ -54,8 +55,10 @@ def freeze_graph(ckpt_folder, pb_folder, pb_name, output_node_names):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--ckpt", type=str, help="Checkpoint model folder")
-    parser.add_argument("--pb", type=str, help="Pb model folder")
+    parser.add_argument("--ckpt", type=str, default="ckpt",
+                        help="Checkpoint model folder")
+    parser.add_argument("--pb", type=str, default="pb",
+                        help="Pb model folder")
     parser.add_argument("--pb_name", type=str, default="frozen_model.pb",
                         help="Pb model file name.")
     parser.add_argument("--output_nodes", type=str, default="Decoder_1/output_ids",

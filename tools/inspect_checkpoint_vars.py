@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-Print all operations in a checkpoint file.
+Print all variables in a checkpoint file.
 """
 
 import sys
@@ -26,5 +26,6 @@ if __name__ == '__main__':
     graph, sess = load_graph_session_from_ckpt(input_checkpoint)
 
     # We can verify that we can access the list of operations in the graph
-    for op in graph.get_operations():
-        print(op.name)
+    with graph.as_default():
+        for var in tf.global_variables():
+            print(var.name, var.shape)
